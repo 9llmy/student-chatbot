@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>مساعد الطالب الذكي</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #f0f0f0; display: flex; flex-direction: column; height: 100vh; }
+    header { background: #004080; color: white; padding: 1rem; text-align: center; }
+    #chat { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
+    .msg { margin: .5rem 0; padding: .5rem 1rem; border-radius: 10px; max-width: 75%; }
+    .user { align-self: flex-end; background: #cce5ff; }
+    .bot { align-self: flex-start; background: #ffe5cc; }
+    #input { display: flex; padding: .5rem; background: #fff; }
+    input { flex: 1; padding: .5rem; font-size: 1rem; }
+    button { padding: .5rem 1rem; background: #004080; color: white; border: none; }
+  </style>
+</head>
+<body>
+  <header>💬 مساعد الطالب الذكي</header>
+  <div id="chat"></div>
+  <div id="input">
+    <input id="question" placeholder="اكتب سؤالك هنا..." />
+    <button onclick="send()">إرسال</button>
+  </div>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const q = document.getElementById('question');
+
+    const answers = {
+      "متى اختبار الرياضيات؟": "📝 يوم 5 يوليو.",
+      "وين قاعة eng103؟": "📍 المبنى B - الدور 2.",
+      "وش المطلوب للتسجيل بالتدريب؟": "📋 الهوية + كشف درجات.",
+      "كم عدد الساعات المسموح بها؟": "🎓 18 ساعة.",
+    };
+
+    function add(text, type) {
+      const msg = document.createElement('div');
+      msg.className = `msg ${type}`;
+      msg.textContent = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function send() {
+      const text = q.value.trim();
+      if (!text) return;
+      add(text, 'user');
+      q.value = '';
+      const reply = answers[text.toLowerCase()] || "❓ عذرًا، لم أفهم سؤالك.";
+      setTimeout(() => add(reply, 'bot'), 300);
+    }
+
+    q.addEventListener('keypress', e => e.key === 'Enter' && send());
+  </script>
+</body>
+</html>
+initial commit
