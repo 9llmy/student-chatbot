@@ -2,56 +2,86 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>مساعد الطالب الذكي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مساعد الطالب الذكي - جامعة القصيم</title>
   <style>
-    body { font-family: sans-serif; margin: 0; background: #f0f0f0; display: flex; flex-direction: column; height: 100vh; }
-    header { background: #004080; color: white; padding: 1rem; text-align: center; }
-    #chat { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
-    .msg { margin: .5rem 0; padding: .5rem 1rem; border-radius: 10px; max-width: 75%; }
-    .user { align-self: flex-end; background: #cce5ff; }
-    .bot { align-self: flex-start; background: #ffe5cc; }
-    #input { display: flex; padding: .5rem; background: #fff; }
-    input { flex: 1; padding: .5rem; font-size: 1rem; }
-    button { padding: .5rem 1rem; background: #004080; color: white; border: none; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to left, #f0f4f8, #dbeafe);
+      margin: 0; padding: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #1e3a8a;
+      color: white;
+      width: 100%; text-align: center;
+      padding: 1rem 0;
+    }
+    main {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 90%; max-width: 600px;
+      display: flex; flex-direction: column;
+      gap: 1rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    #response {
+      white-space: pre-wrap;
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
   </style>
 </head>
 <body>
-  <header>💬 مساعد الطالب الذكي</header>
-  <div id="chat"></div>
-  <div id="input">
-    <input id="question" placeholder="اكتب سؤالك هنا..." />
-    <button onclick="send()">إرسال</button>
-  </div>
-
+  <header>
+    <h1> مساعد الطالب الذكي - جامعة القصيم</h1>
+  </header>
+  <main>
+    <label for="question">اطرح سؤالك و سأقوم باجابتك:</label>
+    <input type="text" id="question" placeholder="مثال: ما هو الرسوم الدراسية لكلية الطب؟" />
+    <button onclick="askBot()">إرسال</button>
+    <div id="response"></div>
+  </main>
   <script>
-    const chat = document.getElementById('chat');
-    const q = document.getElementById('question');
+    async function askBot() {
+      const question = document.getElementById('question').value.trim();
+      if (!question) return alert('من فضلك اكتب سؤالا');
 
-    const answers = {
-      "متى اختبار الرياضيات؟": "📝 يوم 5 يوليو.",
-      "وين قاعة eng103؟": "📍 المبنى B - الدور 2.",
-      "وش المطلوب للتسجيل بالتدريب؟": "📋 الهوية + كشف درجات.",
-      "كم عدد الساعات المسموح بها؟": "🎓 18 ساعة.",
-    };
+      const responseDiv = document.getElementById('response');
+      responseDiv.textContent = 'جارٍ الرد ...';
 
-    function add(text, type) {
-      const msg = document.createElement('div');
-      msg.className = `msg ${type}`;
-      msg.textContent = text;
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
+      try {
+        const res = await fetch('https://api.example.com/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        responseDiv.textContent = data.answer || 'لا يوجد رد حاليا';
+      } catch (error) {
+        responseDiv.textContent = 'حدث خطأ في الاتصال';
+      }
     }
-
-    function send() {
-      const text = q.value.trim();
-      if (!text) return;
-      add(text, 'user');
-      q.value = '';
-      const reply = answers[text.toLowerCase()] || "❓ عذرًا، لم أفهم سؤالك.";
-      setTimeout(() => add(reply, 'bot'), 300);
-    }
-
-    q.addEventListener('keypress', e => e.key === 'Enter' && send());
   </script>
 </body>
 </html>
