@@ -1,0 +1,88 @@
+<!-- ملف HTML الذي يعرض الشات بوت -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مساعد الطالب الذكي - جامعة القصيم</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to left, #f0f4f8, #dbeafe);
+      margin: 0; padding: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #1e3a8a;
+      color: white;
+      width: 100%; text-align: center;
+      padding: 1rem 0;
+    }
+    main {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 90%; max-width: 600px;
+      display: flex; flex-direction: column;
+      gap: 1rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    #response {
+      white-space: pre-wrap;
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1> مساعد الطالب الذكي - جامعة القصيم</h1>
+  </header>
+  <main>
+    <label for="question">اطرح سؤالك و سأقوم باجابتك:</label>
+    <input type="text" id="question" placeholder="مثال: ما هو الرسوم الدراسية لكلية الطب؟" />
+    <button onclick="askBot()">إرسال</button>
+    <div id="response"></div>
+  </main>
+  <script>
+    async function askBot() {
+      const question = document.getElementById('question').value.trim();
+      if (!question) return alert('من فضلك اكتب سؤالا');
+
+      const responseDiv = document.getElementById('response');
+      responseDiv.textContent = 'جارٍ الرد ...';
+
+      try {
+        const res = await fetch('http://localhost:3000/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        responseDiv.textContent = data.answer || 'لا يوجد رد حالياً.';
+      } catch (error) {
+        responseDiv.textContent = 'حدث خطأ في الاتصال بالخادم.';
+      }
+    }
+  </script>
+</body>
+</html>
