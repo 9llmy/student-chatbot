@@ -1,57 +1,407 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <title>مساعد الطالب الذكي</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مساعد جامعة القصيم </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         body {
-            font-family: sans-serif;
-            background: #f1f5f9;
+            background: linear-gradient(135deg, #1a2a6c, #2d388a, #4a4bae);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2rem;
         }
 
-        input, button {
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+
+        .header {
+            background: linear-gradient(90deg, #1a2a6c, #2d388a);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+
+                .header h1 i {
+                    color: #4db8ff;
+                    animation: pulse 2s infinite;
+                }
+
+            .header p {
+                font-size: 1rem;
+                opacity: 0.9;
+            }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f8f9fa" opacity="0.3"/><path d="M20,20 L80,20 L80,80 L20,80 Z" fill="none" stroke="%23e9ecef" stroke-width="1"/></svg>');
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 15px;
+            border-radius: 18px;
+            line-height: 1.6;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .bot-message {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #1a2a6c, #2d388a);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 30px;
             font-size: 1rem;
-            margin-top: 1rem;
-            padding: 0.5rem;
-            width: 100%;
-            max-width: 500px;
+            outline: none;
+            transition: all 0.3s;
+            background: #f8f9fa;
         }
 
-        #response {
-            margin-top: 2rem;
-            white-space: pre-wrap;
-            background: #e2e8f0;
-            padding: 1rem;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 500px;
+            #user-input:focus {
+                border-color: #1a2a6c;
+                box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.2);
+            }
+
+        #send-btn {
+            background: linear-gradient(135deg, #1a2a6c, #2d388a);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(26, 42, 108, 0.3);
+        }
+
+            #send-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 15px rgba(26, 42, 108, 0.4);
+            }
+
+            #send-btn:active {
+                transform: translateY(0);
+            }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+
+        .suggestion {
+            background: #e3f2fd;
+            padding: 10px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border: 1px solid #bbdefb;
+            color: #1a2a6c;
+        }
+
+            .suggestion:hover {
+                background: #bbdefb;
+                transform: translateY(-2px);
+            }
+
+        .loading {
+            text-align: center;
+            padding: 10px;
+            color: #1a2a6c;
+            font-style: italic;
+        }
+
+            .loading:after {
+                content: "";
+                animation: dots 1.5s infinite;
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes dots {
+            0%, 20% {
+                content: ".";
+            }
+
+            40% {
+                content: "..";
+            }
+
+            60% {
+                content: "...";
+            }
+
+            80%, 100% {
+                content: "";
+            }
+        }
+
+        .welcome-message {
+            background: #e3f2fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #1a2a6c;
+        }
+
+            .welcome-message h3 {
+                color: #1a2a6c;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .welcome-message ul {
+                padding-left: 20px;
+                margin-top: 10px;
+            }
+
+            .welcome-message li {
+                margin-bottom: 8px;
+                position: relative;
+            }
+
+                .welcome-message li:before {
+                    content: "•";
+                    color: #1a2a6c;
+                    font-weight: bold;
+                    position: absolute;
+                    left: -15px;
+                }
+
+        @media (max-width: 768px) {
+            .container {
+                height: calc(100vh - 20px);
+                margin: 10px 0;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .suggestions {
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>مساعد الطالب الذكي</h1>
-    <input type="text" id="question" placeholder="اكتب سؤالك هنا..." />
-    <button onclick="ask()">إرسال</button>
-    <div id="response"></div>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-graduation-cap"></i> مساعد جامعة القصيم</h1>
+            <p>اسألني عن أي كلية في جامعة القصيم</p>
+        </div>
+
+        <div class="chat-container" id="chat-container">
+            <div class="welcome-message">
+                <h3><i class="fas fa-lightbulb"></i> كيف يمكنني مساعدتك؟</h3>
+                <p>أنا مساعد جامعة القصيم الذكي، يمكنني الإجابة على أسئلتك المتعلقة بالكليات المختلفة في الجامعة. إليك بعض الأمثلة:</p>
+                <ul>
+                    <li>ما هي نسبة رضا الطلاب في كلية الهندسة؟</li>
+                    <li>كم عدد الأبحاث المنشورة في كلية الطب؟</li>
+                    <li>هل كلية الحاسب معتمدة دولياً؟</li>
+                    <li>ما هو معدل التوظيف في كلية التمريض؟</li>
+                    <li>كم يبلغ تمويل البحوث في كلية الصيدلة؟</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="suggestions" id="suggestions">
+            <div class="suggestion">نسبة رضا الطلاب في كلية الهندسة</div>
+            <div class="suggestion">عدد الأبحاث في كلية الطب</div>
+            <div class="suggestion">التمويل البحثي في كلية العلوم</div>
+            <div class="suggestion">معدل التوظيف في كلية التربية</div>
+            <div class="suggestion">الاعتماد الأكاديمي لكلية الحاسب</div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="اكتب سؤالك هنا...">
+            <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
 
     <script>
-        async function ask() {
-            const question = document.getElementById('question').value.trim();
-            if (!question) return alert('اكتب سؤالاً أولاً.');
+        document.addEventListener('DOMContentLoaded', function () {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const suggestions = document.querySelectorAll('.suggestion');
 
-            const res = await fetch('http://localhost:3000/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question })
+            // إضافة رسالة إلى الدردشة
+            function addMessage(text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // إضافة رسالة تحميل
+            function addLoadingMessage() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message bot-message loading';
+                loadingDiv.id = 'loading-message';
+                chatContainer.appendChild(loadingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return loadingDiv;
+            }
+
+            // إرسال سؤال إلى السيرفر
+            async function sendQuestion(question) {
+                if (!question.trim()) return;
+
+                // إضافة سؤال المستخدم
+                addMessage(question, true);
+                userInput.value = '';
+
+                // إضافة مؤشر تحميل
+                const loadingElement = addLoadingMessage();
+
+                try {
+                    // إرسال السؤال إلى السيرفر
+                    const res = await fetch('http://localhost:3000/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question })
+                    });
+
+                    const data = await res.json();
+
+                    // إزالة مؤشر التحميل
+                    loadingElement.remove();
+
+                    // إضافة الإجابة
+                    addMessage(data.answer);
+                } catch (error) {
+                    // إزالة مؤشر التحميل
+                    loadingElement.remove();
+
+                    // إضافة رسالة خطأ
+                    addMessage('❌ حدث خطأ في الاتصال بالسيرفر. يرجى المحاولة مرة أخرى.');
+                    console.error('Error:', error);
+                }
+            }
+
+            // إرسال عند الضغط على زر الإرسال
+            sendBtn.addEventListener('click', () => {
+                sendQuestion(userInput.value);
             });
 
-            const data = await res.json();
-            document.getElementById('response').textContent = data.answer;
-        }
+            // إرسال عند الضغط على Enter
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendQuestion(userInput.value);
+                }
+            });
+
+            // إضافة اقتراحات الأسئلة
+            suggestions.forEach(suggestion => {
+                suggestion.addEventListener('click', () => {
+                    userInput.value = suggestion.textContent;
+                    sendBtn.focus();
+                });
+            });
+
+            // إضافة رسالة ترحيبية من البوت
+            setTimeout(() => {
+                addMessage("مرحباً! أنا مساعد جامعة القصيم الذكي. يمكنني مساعدتك في الحصول على معلومات عن الكليات المختلفة. اكتب سؤالك أو اختر أحد الأسئلة المقترحة.");
+            }, 1000);
+        });
     </script>
 </body>
 </html>

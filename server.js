@@ -2,22 +2,45 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const Fuse = require('fuse.js');
 
 const app = express();
-app.use(cors());
+
+// إعدادات CORS الموسعة
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
 app.use(express.json());
 
+// إنشاء مجلد البيانات إذا لم يكن موجوداً
 const DATA_FOLDER = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_FOLDER)) {
+    fs.mkdirSync(DATA_FOLDER);
+    console.log(`تم إنشاء مجلد البيانات: ${DATA_FOLDER}`);
+}
 
 // تحميل جميع ملفات JSON من مجلد data/
 function loadAllColleges() {
+    if (!fs.existsSync(DATA_FOLDER)) {
+        return [];
+    }
+
     const allFiles = fs.readdirSync(DATA_FOLDER).filter(file => file.endsWith('.json'));
     let allColleges = [];
 
     for (const file of allFiles) {
-        const content = JSON.parse(fs.readFileSync(path.join(DATA_FOLDER, file), 'utf8'));
-        if (Array.isArray(content.colleges)) {
-            allColleges = allColleges.concat(content.colleges);
+        try {
+            const filePath = path.join(DATA_FOLDER, file);
+            const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            if (Array.isArray(content.colleges)) {
+                allColleges = allColleges.concat(content.colleges);
+            }
+        } catch (e) {
+            console.error(`خطأ في تحميل ملف ${file}:`, e.message);
         }
     }
 
@@ -25,6 +48,14 @@ function loadAllColleges() {
 }
 
 const colleges = loadAllColleges();
+
+// تهيئة محرك البحث الضبابي
+const fuseOptions = {
+    keys: ['name_ar', 'name_en'],
+    threshold: 0.3,
+    includeScore: true
+};
+const fuse = new Fuse(colleges, fuseOptions);
 
 // مرادفات وأسئلة
 const fieldMappings = [
@@ -291,14 +322,11 @@ const fieldMappings = [
 function answerQuestion(question) {
     const q = question.toLowerCase().replace(/\s+/g, ' ').trim();
 
-    // 1. البحث عن الكلية بدقة
-    const matchedColleges = colleges.filter(c => {
-        const nameAr = c.name_ar.toLowerCase().replace('كلية', '').trim();
-        const nameEn = c.name_en.toLowerCase().replace('college of', '').trim();
-        return q.includes(nameAr) || q.includes(nameEn) ||
-            q.includes(c.name_ar.toLowerCase()) ||
-            q.includes(c.name_en.toLowerCase());
-    });
+    // 1. البحث عن الكلية باستخدام البحث الضبابي
+    const searchResults = fuse.search(q);
+    const matchedColleges = searchResults
+        .filter(result => result.score < 0.4)
+        .map(result => result.item);
 
     if (matchedColleges.length === 0) {
         return "❌ لم أتمكن من تحديد الكلية في سؤالك. يرجى التأكد من ذكر اسم الكلية بشكل صحيح.";
@@ -326,43 +354,50 @@ function answerQuestion(question) {
     const responses = matchedColleges.map(college => {
         const value = college[matchedField.field];
 
-        // تنسيق الردود حسب نوع البيانات
         if (typeof value === 'boolean') {
             return value ?
                 `✅ نعم، ${matchedField.label} متوفر في ${college.name_ar}` :
                 `❌ لا، ${matchedField.label} غير متوفر في ${college.name_ar}`;
         }
 
-        // تنسيق النسب المئوية
-        if (matchedField.field.includes('satisfaction') ||
-            matchedField.field.includes('rate') ||
-            matchedField.field.includes('quality')) {
+        if (matchedField.field.includes('satisfaction') || matchedField.field.includes('rate') || matchedField.field.includes('quality')) {
             return `${matchedField.label} في ${college.name_ar}: ${value}%`;
         }
 
-        // تنسيق الأموال
         if (matchedField.field === 'research_funding') {
             const formatted = new Intl.NumberFormat('ar-SA').format(value);
-            return `${matchedField.label} في ${college.name_ar}: ${formformed} ريال`;
+            return `${matchedField.label} في ${college.name_ar}: ${formatted} ريال`;
         }
 
-        // الرد العام
         return `${matchedField.label} في ${college.name_ar}: ${value}`;
     });
 
     return responses.join('\n\n');
 }
 
-// نقطة نهاية API
+// نقاط النهاية
 app.post('/ask', (req, res) => {
     const question = req.body.question?.trim();
     if (!question) return res.status(400).json({ answer: "يرجى إدخال سؤال." });
 
-    const answer = answerQuestion(question);
-    res.json({ answer });
+    try {
+        const answer = answerQuestion(question);
+        res.json({ answer });
+    } catch (e) {
+        res.status(500).json({ error: "حدث خطأ أثناء معالجة السؤال" });
+    }
+});
+
+app.get('/colleges', (req, res) => {
+    res.json(colleges.map(c => ({
+        id: c.college_id,
+        name_ar: c.name_ar,
+        name_en: c.name_en
+    })));
 });
 
 // تشغيل السيرفر
-app.listen(3000, () => {
-    console.log("✅ API تعمل على http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ السيرفر يعمل على http://localhost:${PORT}`);
 });
