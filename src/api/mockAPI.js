@@ -1,4 +1,3 @@
-
 // mockAPI.js - Fake API responses for development/testing
 
 export const Core = {
@@ -35,3 +34,6 @@ export const Core = {
     };
   }
 };
+
+// Export InvokeLLM directly
+export const InvokeLLM = Core.InvokeLLM;

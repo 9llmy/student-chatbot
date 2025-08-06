@@ -4,6 +4,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/student-chatbot/',
   plugins: [react()],
   server: {
     allowedHosts: true
@@ -21,4 +22,4 @@ export default defineConfig({
       },
     },
   },
-}) 
+})

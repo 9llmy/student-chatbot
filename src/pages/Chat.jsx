@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ChatMessage, College } from "@/api/mockEntities";
-import { InvokeLLM } from "@/api/integrations";
+import { InvokeLLM } from "@/api/mockAPI";
 import { motion, AnimatePresence } from "framer-motion";
 
 import MessageBubble from "../components/chat/MessageBubble";
